@@ -1,21 +1,30 @@
 import pickle
-from torch._C import device
 from tqdm import tqdm
 import numpy as np
-import torch
 from sentence_transformers import SentenceTransformer
-import os
 
 
 def load_model(model='transe'):
     if model == 'transe':
-        with open('./transe300/entities.p', 'rb') as handle:
+        with open('./openke_models/transe300/entities.p', 'rb') as handle:
             e = pickle.load(handle)
-        with open('./transe300/relations.p', 'rb') as handle:
+        with open('./openke_models/transe300/relations.p', 'rb') as handle:
             r = pickle.load(handle)
+    elif model == 'complex':
+        with open('./openke_models/complex300/entities_r.p', 'rb') as handle:
+            e_r = pickle.load(handle)
+        with open('./openke_models/complex300/entities_i.p', 'rb') as handle:
+            e_i = pickle.load(handle)
+        e = [e_r, e_i]
+        with open('./openke_models/complex300/relations_r.p', 'rb') as handle:
+            r_r = pickle.load(handle)
+        with open('./openke_models/complex300/relations_i.p', 'rb') as handle:
+            r_i = pickle.load(handle)
+        r = [r_r, r_i]
     else:
         exit('Not support yet!')
     return e, r
+
 
 def load_entities():
     entities = {}
@@ -26,7 +35,7 @@ def load_entities():
             name = e[0].strip()
             _id = e[1].strip()
             entities[_id] = name
-    print("Number of entities: %d." % (len(entities)))
+    # print("Number of entities: %d." % (len(entities)))
     return entities
 
 def load_relations():
@@ -38,7 +47,7 @@ def load_relations():
             name = e[0].strip()
             _id = e[1].strip()
             relations[_id] = name
-    print("Number of entities: %d." % (len(relations)))
+    # print("Number of entities: %d." % (len(relations)))
     return relations
 
 def load_descriptions():
@@ -50,7 +59,7 @@ def load_descriptions():
             name = e[0].strip()
             desc = e[2].strip()
             descriptions[name] = desc
-    print("Number of desc: %d." % (len(descriptions)))
+    # print("Number of desc: %d." % (len(descriptions)))
     return descriptions
 
 
@@ -58,61 +67,98 @@ def load_data(device, cut=20000):
     e,_ = load_model()
     entities = load_entities()
     descriptions = load_descriptions()
-    x = []
-    y = []
+    
     print('device: %s' % device)
+    # model = SentenceTransformer('average_word_embeddings_glove.6B.300d', device=device)
     model = SentenceTransformer('distilbert-base-nli-mean-tokens', device=device)
     print("Transforming descriptions using sbert...")
+
+    x = []
+    y = []
     for i in tqdm(range(len(e))):
         _id = str(i)
         name = entities[_id]
         this_desc = descriptions[name]
         this_embedding = e[i]
-        x.append(model.encode(name+' '+this_desc))
+        x.append(model.encode(this_desc))
         y.append(np.array(this_embedding))
 
     x = np.array([i for i in x]).astype(np.float)
     y = np.array([i for i in y]).astype(np.float)
     print("Transformation done!")
     return x[:cut], y[:cut], x[cut:], y[cut:]
+        
 
-def filter_open_word_test():
-    # entities_train = []
-    # relations_train = []
-    # with open('./dbpedia50/train.txt', 'r') as trf:
-    #     data = trf.readlines()
-    #     for line in data:
-    #         e = line.strip().split('\t')
-    #         h = e[0].strip()
-    #         t = e[1].strip()
-    #         r = e[2].strip()
-    #         entities_train.append(h)
-    #         entities_train.append(t)
-    #         relations_train.append(r)
-    # entities_train = tuple(entities_train)
-    # relations_train = tuple(relations_train)
+def load_data_complex(device, cut=20000):
+    e,_ = load_model('complex')
+    entities = load_entities()
+    descriptions = load_descriptions()
+    
+    print('device: %s' % device)
+    model = SentenceTransformer('distilbert-base-nli-mean-tokens', device=device)
+    print("Transforming descriptions using sbert...")
 
+    x = []
+    yr = []
+    yi = []
+    for i in tqdm(range(len(e[0]))):
+        _id = str(i)
+        name = entities[_id]
+        this_desc = descriptions[name]
+        this_embedding_r = e[0][i]
+        this_embedding_i = e[1][i]
+        x.append(model.encode(this_desc))
+        yr.append(np.array(this_embedding_r))
+        yi.append(np.array(this_embedding_i))
+    x = np.array([i for i in x]).astype(np.float)
+    yr = np.array([i for i in yr]).astype(np.float)
+    yi = np.array([i for i in yi]).astype(np.float)
+    print("Transformation done!")
+    return x[:cut], yr[:cut], yi[:cut], x[cut:], yr[cut:], yi[cut:]
+
+def relation_tail_train():
+    r_t = []
+    with open('./dbpedia50/train.txt', 'r') as ft:
+        data = ft.readlines()
+        for line in data:
+            e = line.strip().split('\t')
+            # h = e[0].strip()
+            t = e[1].strip()
+            r = e[2].strip()
+            r_t.append(r+':'+t)
+    return tuple(r_t)
+
+def filter_open_word_test(deep_filtered=False):
     entities = load_entities()
     relations = load_relations()
-    with open('./open_world_dbpedia50/test.txt','r') as ef:
+    if deep_filtered:
+        r_t = relation_tail_train()
+    else:
+        r_t = ()
+    with open('./open_world_dbpedia50/test_tail_open_converted.txt','r') as ef:
         data = ef.readlines()
-        with open('./open_world_dbpedia50/test_filtered.txt', 'w') as wf:       
+        with open('./open_world_dbpedia50/test_tail_open_converted_filtered.txt', 'w') as wf:       
             for line in data:
                 e = line.strip().split('\t')
                 h = e[0].strip()
                 t = e[1].strip()
                 r = e[2].strip()
-                if t in entities.values() and r in relations.values():
-                    wf.write(h+'\t'+t+'\t'+r+'\n')
+                if deep_filtered:
+                    if r+':'+t in r_t:
+                        wf.write(h+'\t'+t+'\t'+r+'\n')
+                else:
+                    if t in entities.values() and r in relations.values():
+                        wf.write(h+'\t'+t+'\t'+r+'\n')
 
-def load_open_word_test(device):
-    if not os.path.exists('./open_world_dbpedia50/test_filtered.txt'):
-        print('Filtering test file...')
-        filter_open_word_test()
+def load_open_word_test(device, deep_filtered=False):
+    # if not os.path.exists('./open_world_dbpedia50/test_filtered.txt'):
+    #     print('Filtering test file...')
+    #     filter_open_word_test(deep_filtered)
 
     entities  = dict((v,k) for k,v in load_entities().items())
     relations = dict((v,k) for k,v in load_relations().items())
     descs = load_descriptions()
+    # model = SentenceTransformer('average_word_embeddings_glove.6B.300d', device=device)
     model = SentenceTransformer('distilbert-base-nli-mean-tokens', device=device)
 
     hs = []
@@ -120,7 +166,7 @@ def load_open_word_test(device):
     rs = []
 
     print("Transforming descriptions using sbert...")
-    with open('./open_world_dbpedia50/test_filtered.txt', 'r') as f:
+    with open('./open_world_dbpedia50/test_tail_open_converted.txt', 'r') as f:
         data = f.readlines()
         for line in tqdm(data):
             e = line.strip().split('\t')
@@ -136,3 +182,42 @@ def load_open_word_test(device):
             rs.append(r_id)
     print("Transformation done!")
     return hs, ts, rs
+
+
+def target_filter():
+    filter_list = {}
+    with open('./dbpedia50/train2id.txt', 'r') as ft:
+        data = ft.readlines()
+        for line in data:
+            e = line.strip().split('\t')
+            # h = e[0].strip()
+            t = e[1].strip()
+            r = e[2].strip()
+            if r not in filter_list:
+                filter_list[r] = []
+            else:
+                this_list = filter_list[r]
+                this_list.append(t)
+                filter_list[r] = this_list
+        
+    return filter_list
+
+def load_data_for_bert(cut=8):
+    e,_ = load_model()
+    entities = load_entities()
+    descriptions = load_descriptions()
+    
+    x = []
+    y = []
+    for i in range(len(e[10])):
+        _id = str(i)
+        name = entities[_id]
+        this_desc = sp.get_filtered_text(descriptions[name])
+        this_embedding = e[i]
+        x.append(this_desc)
+        y.append(np.array(this_embedding))
+
+    y = np.array([i for i in y]).astype(np.float)
+
+    return x[:cut], y[:cut], x[cut:], y[cut:]
+
