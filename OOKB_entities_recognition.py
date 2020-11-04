@@ -51,8 +51,10 @@ for e in ner_entities:
         if e in sent:
             try:
                 _str = result[e]
-                result[e] = _str + '.' + e
+                if e in _str:
+                    continue
+                result[e] = _str + '.' + sent.split(e)[1]
             except:
-                result[e] = sent
+                result[e] = e + ' ' + sent.split(e)[1]
 
 print(result)
