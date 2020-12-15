@@ -202,17 +202,17 @@ def target_filter():
         
     return filter_list
 
-def load_data_for_bert(cut=8):
+def load_data_for_bert(cut=20000):
     e,_ = load_model()
     entities = load_entities()
     descriptions = load_descriptions()
-    
+
     x = []
     y = []
-    for i in range(len(e[10])):
+    for i in range(len(e)):
         _id = str(i)
         name = entities[_id]
-        this_desc = sp.get_filtered_text(descriptions[name])
+        this_desc = descriptions[name]
         this_embedding = e[i]
         x.append(this_desc)
         y.append(np.array(this_embedding))
