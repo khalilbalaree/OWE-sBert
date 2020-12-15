@@ -20,6 +20,11 @@ pip install tqdm
 
 ## 2. Execution:
 
+### Recognize out-of-KB entities in a document
+```
+python3 OOKB_entities_recognition.py
+```
+
 ### Training a closed-world model:
 1. Download the OpenKE KGC framework from https://github.com/thunlp/OpenKE.
 2. Use the python scripts in [/openke-scripts](/openke-scripts).
