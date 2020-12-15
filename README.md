@@ -1,6 +1,9 @@
 # Out-of-knowledge-base entities linking
 
-## 1. Dependencies:
+## 1. Introduction:
+This repository is the code part of the CMPUT 692 class project: A study of out-of-KB entities.
+
+## 2. Dependencies:
 
 ### For finding OOKB entities from text
 
@@ -18,7 +21,7 @@ pip install numpy
 pip install tqdm
 ```
 
-## 2. Execution:
+## 3. Execution:
 
 ### Recognize out-of-KB entities in a document
 ```
