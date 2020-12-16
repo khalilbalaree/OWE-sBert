@@ -23,9 +23,9 @@ pip install tqdm
 
 ## 3. Dataset & model download:
 After downloading, unzip and put in the corresponding directory.
-* [openKE_scripts\dbpedia50_openKE](openKE_scripts\dbpedia50_openKE)
-* [open_world\dbpedia50](open_world\dbpedia50)
-* [open_world\openke_models](open_world\openke_models)
+* [openKE_scripts/dbpedia50_openKE](openKE_scripts/dbpedia50_openKE)
+* [open_world/dbpedia50](open_world/dbpedia50)
+* [open_world/openke_models](open_world/openke_models)
 
 ## 4. Execution:
 
