@@ -21,7 +21,13 @@ pip install numpy
 pip install tqdm
 ```
 
-## 3. Execution:
+## 3. Dataset & model download:
+After downloading, unzip and put in the corresponding directory.
+* [openKE_scripts\dbpedia50_openKE\README.md](openKE_scripts\dbpedia50_openKE\README.md)
+* [open_world\dbpedia50\README.md](open_world\dbpedia50\README.md)
+* [open_world\openke_models\README.md](open_world\openke_models\README.md)
+
+## 4. Execution:
 
 ### Recognize out-of-KB entities in a document
 ```
@@ -61,3 +67,7 @@ cd open-world
 python run_open_world.py --mode predict --file [filename]
 ```
 A sample file is in [open_world/example_text/test_predict.txt](open_world/example_text/test_predict.txt)
+
+## 5. Acknowledge:
+* Training the closed-world model using OpenKE (https://github.com/thunlp/OpenKE)
+* Inspired by the OWE model (https://github.com/haseebs/OWE)
