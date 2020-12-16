@@ -25,24 +25,30 @@ pip install tqdm
 
 ### Recognize out-of-KB entities in a document
 ```
-python3 OOKB_entities_recognition.py
+cd open_world
+python OOKB_entities_recognition.py
 ```
+The program will ask for a file name. A sample document is in [open_world/example_text/sample.txt](open_world/example_text/sample.txt)
 
 ### Training a closed-world model:
-1. Download the OpenKE KGC framework from https://github.com/thunlp/OpenKE.
-2. Use the python scripts in [/openke-scripts](/openke-scripts).
-3. Copy the checkpoint files to [/open-world/checkpoint](/open-world/checkpoint) 
+Thanks to OpenKE KGC framework
+```
+cd openKE_scripts/openke
+bash make.sh
+cd ..
+python train_transe300D_DBpedia50k.py
+```
 
 ### Traning a open-world model:
 ```
 cd open-world
-python3 run_open_world.py --mode train
+python run_open_world.py --mode train
 ```
 
 ### Benchmarking:
 ```
 cd open-world
-python3 run_open_world.py --mode benchmark
+python run_open_world.py --mode benchmark
 ```
 
 ### Predict a single OOKB entity with the description:
@@ -52,5 +58,6 @@ Second line: description of the entity
 
 ```
 cd open-world
-python3 run_open_world.py --mode predict --file [filename]
+python run_open_world.py --mode predict --file [filename]
 ```
+A sample file is in [open_world/example_text/test_predict.txt](open_world/example_text/test_predict.txt)
